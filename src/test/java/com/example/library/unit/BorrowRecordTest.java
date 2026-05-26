@@ -83,30 +83,33 @@ class BorrowRecordTest {
         @Test
         @DisplayName("should return true when checked after due date and still borrowed")
         void shouldBeOverdue_WhenPastDueDateAndStillBorrowed() {
-            // TODO: Create a BorrowRecord and check isOverdue() with a date after dueDate
-            fail("Not implemented yet");
+            BorrowRecord record = new BorrowRecord(createSampleBook(), createSampleMember());
+            LocalDate afterDue = record.getDueDate().plusDays(1);
+            assertTrue(record.isOverdue(afterDue));
         }
 
         @Test
         @DisplayName("should return false when checked before due date")
         void shouldNotBeOverdue_WhenBeforeDueDate() {
-            // TODO: Create a BorrowRecord and check isOverdue() with a date before dueDate
-            fail("Not implemented yet");
+            BorrowRecord record = new BorrowRecord(createSampleBook(), createSampleMember());
+            LocalDate beforeDue = record.getDueDate().minusDays(1);
+            assertFalse(record.isOverdue(beforeDue));
         }
 
         @Test
         @DisplayName("should return false when book is already returned (even if past due)")
         void shouldNotBeOverdue_WhenAlreadyReturned() {
-            // TODO: Create a BorrowRecord, set status to RETURNED,
-            //       then check isOverdue() — should be false even if past due
-            fail("Not implemented yet");
+            BorrowRecord record = new BorrowRecord(createSampleBook(), createSampleMember());
+            record.setStatus(BorrowStatus.RETURNED);
+            LocalDate afterDue = record.getDueDate().plusDays(5);
+            assertFalse(record.isOverdue(afterDue));
         }
 
         @Test
         @DisplayName("should return false on exactly the due date")
         void shouldNotBeOverdue_OnExactDueDate() {
-            // TODO: Check isOverdue() when asOfDate == dueDate
-            fail("Not implemented yet");
+            BorrowRecord record = new BorrowRecord(createSampleBook(), createSampleMember());
+            assertFalse(record.isOverdue(record.getDueDate()));
         }
     }
 
