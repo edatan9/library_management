@@ -143,7 +143,20 @@ class BorrowServiceTest {
         void shouldThrow_WhenDuplicateBorrow() {
             // TODO: Set up mocks so existsByBookIdAndMemberIdAndStatus returns true
             //       Then verify IllegalStateException is thrown
-            fail("Not implemented yet");
+
+            when(memberRepository.findById(1L)).thenReturn(Optional.of(sampleMember));
+            when(bookRepository.findById(1L)).thenReturn(Optional.of(sampleBook));
+
+            when(borrowRecordRepository.countActiveBorrowsByMember(1L)).thenReturn(0);
+
+            when(borrowRecordRepository.existsByBookIdAndMemberIdAndStatus(1L, 1L, BorrowStatus.BORROWED)).thenReturn(true);
+
+            assertThrows(IllegalStateException.class,
+                    () -> borrowService.borrowBook(1L, 1L));
+
+            verify(borrowRecordRepository, never()).save(any());
+
+            //fail("Not implemented yet");
         }
 
         @Test
