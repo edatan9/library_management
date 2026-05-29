@@ -21,6 +21,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
+
 
 /**
  * UNIT TEST - Service Layer
@@ -182,7 +184,23 @@ class BorrowServiceTest {
         void shouldDecreaseAvailableCopies() {
             // TODO: After borrowBook(), verify that book.availableCopies decreased by 1
             //       Hint: Use ArgumentCaptor to capture the Book saved to repository
-            fail("Not implemented yet");
+
+            when(memberRepository.findById(1L)).thenReturn(Optional.of(sampleMember));
+            when(bookRepository.findById(1L)).thenReturn(Optional.of(sampleBook));
+
+            when(borrowRecordRepository.countActiveBorrowsByMember(1L)).thenReturn(0);
+            when(borrowRecordRepository.existsByBookIdAndMemberIdAndStatus(1L, 1L, BorrowStatus.BORROWED)).thenReturn(false);
+
+            when(borrowRecordRepository.save(any(BorrowRecord.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
+            borrowService.borrowBook(1L, 1L);
+            verify(bookRepository).save(bookCaptor.capture());
+
+            Book savedBook = bookCaptor.getValue();
+            assertEquals(2, savedBook.getAvailableCopies());
+
+            //fail("Not implemented yet");
         }
     }
 
