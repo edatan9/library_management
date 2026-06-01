@@ -10,13 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * INTEGRATION TEST - Repository Layer
@@ -27,6 +29,9 @@ class BookRepositoryIT extends AbstractIntegrationTest {
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -113,7 +118,7 @@ class BookRepositoryIT extends AbstractIntegrationTest {
     }
 
     // =========================================================================
-    // TODO: Students should write these integration tests
+    // Genre and author query tests
     // =========================================================================
 
     @Nested
@@ -123,34 +128,57 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         @Test
         @DisplayName("should find books by genre")
         void shouldFindByGenre() {
-            // TODO: Save books of different genres
-            //       Query by Genre.SCIENCE and verify only matching books are returned
-            fail("Not implemented yet");
+            createBook("978-1", "A Brief History of Time", "Stephen Hawking", 5, Genre.SCIENCE);
+            createBook("978-2", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            createBook("978-3", "Cosmos", "Carl Sagan", 4, Genre.SCIENCE);
+
+            List<Book> scienceBooks = bookRepository.findByGenre(Genre.SCIENCE);
+
+            assertThat(scienceBooks).hasSize(2);
+            assertThat(scienceBooks).extracting(Book::getTitle)
+                    .containsExactlyInAnyOrder("A Brief History of Time", "Cosmos");
         }
 
         @Test
         @DisplayName("should find books by author (case insensitive, partial match)")
         void shouldFindByAuthor() {
-            // TODO: Save books by different authors
-            //       Search by partial author name and verify results
-            fail("Not implemented yet");
+            createBook("978-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            createBook("978-2", "Clean Architecture", "Robert C. Martin", 2, Genre.TECHNOLOGY);
+            createBook("978-3", "Design Patterns", "Gang of Four", 5, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.findByAuthorContainingIgnoreCase("robert");
+
+            assertThat(results).hasSize(2);
+            assertThat(results).extracting(Book::getAuthor)
+                    .allMatch(a -> a.toLowerCase().contains("robert"));
         }
 
         @Test
         @DisplayName("should search by author name using searchBooks()")
         void shouldSearchByAuthorKeyword() {
-            // TODO: Use searchBooks() with an author name as keyword
-            //       Verify it finds books by that author
-            fail("Not implemented yet");
+            createBook("978-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            createBook("978-2", "Design Patterns", "Gang of Four", 5, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.searchBooks("Gang of Four");
+
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).getTitle()).isEqualTo("Design Patterns");
         }
 
         @Test
         @DisplayName("should return empty list when no books match search")
         void shouldReturnEmpty_WhenNoMatch() {
-            // TODO: Search for a keyword that matches nothing
-            fail("Not implemented yet");
+            createBook("978-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+
+            List<Book> results = bookRepository.searchBooks("nonexistentkeywordxyz");
+
+            assertThat(results).isEmpty();
         }
     }
+
+    // =========================================================================
+    // Edge case tests
+    // =========================================================================
 
     @Nested
     @DisplayName("Edge cases")
@@ -159,17 +187,25 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         @Test
         @DisplayName("should enforce unique ISBN constraint")
         void shouldEnforceUniqueIsbn() {
-            // TODO: Try to save two books with the same ISBN
-            //       Verify a DataIntegrityViolationException is thrown
-            //       Hint: Use assertThrows() and flush the persistence context
-            fail("Not implemented yet");
+            createBook("978-0-13-468599-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+
+            Book duplicate = new Book("978-0-13-468599-1", "Another Book", "Another Author", 2, Genre.FICTION);
+            bookRepository.save(duplicate);
+
+            assertThrows(DataIntegrityViolationException.class, () -> {
+                entityManager.flush();
+            });
         }
 
         @Test
         @DisplayName("should handle deleting a book")
         void shouldDeleteBook() {
-            // TODO: Save a book, delete it, verify it's gone
-            fail("Not implemented yet");
+            Book saved = createBook("978-0-13-468599-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
+            Long id = saved.getId();
+
+            bookRepository.deleteById(id);
+
+            assertThat(bookRepository.findById(id)).isEmpty();
         }
     }
 }
