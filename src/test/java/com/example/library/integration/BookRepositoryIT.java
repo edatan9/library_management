@@ -189,11 +189,10 @@ class BookRepositoryIT extends AbstractIntegrationTest {
         void shouldEnforceUniqueIsbn() {
             createBook("978-0-13-468599-1", "Clean Code", "Robert C. Martin", 3, Genre.TECHNOLOGY);
 
-            Book duplicate = new Book("978-0-13-468599-1", "Another Book", "Another Author", 2, Genre.FICTION);
-            bookRepository.save(duplicate);
-
             assertThrows(DataIntegrityViolationException.class, () -> {
-                entityManager.flush();
+                Book duplicate = new Book("978-0-13-468599-1", "Another Book", "Another Author", 2, Genre.FICTION);
+                duplicate.setPublishedDate(LocalDate.of(2020, 1, 1));
+                bookRepository.saveAndFlush(duplicate);
             });
         }
 
