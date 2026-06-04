@@ -7,12 +7,12 @@ void shouldReturn409_WhenBorrowLimitExceeded() {
                 Book book3 = bookRepository.save(new Book("Title 3", "Author 3", "333333", 5,Genre.SCIENCE));
 
               
-                restTemplate.postForEntity("/api/borrows", new BorrowRequest(student.getId(), book1.getId()), BorrowResponse.class);
-                restTemplate.postForEntity("/api/borrows", new BorrowRequest(student.getId(), book2.getId()), BorrowResponse.class);
+                restTemplate.postForEntity(baseUrl + "/borrows", new BorrowRequest(student.getId(), book1.getId()), Map.class);
+                restTemplate.postForEntity(baseUrl + "/borrows", new BorrowRequest(student.getId(), book2.getId()), Map.class);
 
                 
                 BorrowRequest limitExceededRequest = new BorrowRequest(student.getId(), book3.getId());
-                ResponseEntity<Map> response = restTemplate.postForEntity("/api/borrows", limitExceededRequest, Map.class);
+                ResponseEntity<Map> response = restTemplate.postForEntity(baseUrl + "/borrows", limitExceededRequest, Map.class);
 
                 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
