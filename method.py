@@ -2,9 +2,9 @@ void shouldReturn409_WhenBorrowLimitExceeded() {
             
                 
                 Member student = memberRepository.save(new Member("Test Student", "test@test.com", MembershipType.STUDENT));
-                Book book1 = bookRepository.save(new Book("Title 1", "Author 1", "111111", 5,Genre.SCIENCE));
-                Book book2 = bookRepository.save(new Book("Title 2", "Author 2", "222222", 5, Genre.SCIENCE));
-                Book book3 = bookRepository.save(new Book("Title 3", "Author 3", "333333", 5,Genre.SCIENCE));
+                Book book1 = bookRepository.save(new Book("111111", "Title 1", "Author 1", 5, Genre.SCIENCE));
+                Book book2 = bookRepository.save(new Book("222222", "Title 2", "Author 2", 5, Genre.SCIENCE));
+                Book book3 = bookRepository.save(new Book("333333", "Title 3", "Author 3", 5, Genre.SCIENCE));
 
               
                 restTemplate.postForEntity(baseUrl + "/borrows", new BorrowRequest(student.getId(), book1.getId()), Map.class);
